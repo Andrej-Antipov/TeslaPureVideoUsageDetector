@@ -1,4 +1,4 @@
-#!/bin/sh
+m#!/bin/sh
 
 loc=`locale | grep LANG | sed -e 's/.*LANG="\(.*\)_.*/\1/'`
 
@@ -19,19 +19,24 @@ printf '\n'
 #printf '******      Detecting the usage of NVidia Tesla hardware video decoder    ******\n\n'
 #fi
 
+ionv_ioreg_old="0"
+
 varn=0
 while [[ $varn = 0 ]]; do
 unset client; unset client_pid
-client_pid=$(ioreg -c IONVGraphicsClientTesla -r | grep -i  -A5 NVDVDContextTesla | grep -m 1 IOUserClientCreator | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | xargs)
-if [[ ! $client_pid = "" ]]; then
-client=$(ps xca  | grep $client_pid | cut -f2 -d "." | cut -c 3- | xargs)
-if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
-corr=${#client}
-let "corr=corr/2"
-let "corrl=20-corr"
-fi
-printf "\033[?25l"
-if [[ ! $client = "" ]]; then 
+ionv_ioreg=$(ioreg -c IONVGraphicsClientTesla -r | egrep -oE -a2 "NVDVDContextTesla" | grep -m 1 IOUserClientCreator)
+if [[ ! "$ionv_ioreg" = "$ionv_ioreg_old" ]]; then  
+ionv_ioreg_old="$ionv_ioreg"
+client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | xargs)
+    if [[ ! $client_pid = "" ]]; then
+        client=$(ps xca  | grep $client_pid | cut -f2 -d "." | cut -c 3- | xargs)
+            if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
+    corr=${#client}
+    let "corr=corr/2"
+    let "corrl=20-corr"
+    fi
+    printf "\033[?25l"
+    if [[ ! $client = "" ]]; then 
         printf '\r                                                                                \r'
         if [ $loc = "ru" ]; then
         printf '\r'"%"$corrl"s"'     \e[36;1mКлиент \e[33;1m''"'"$client"'"''\e[36;1m использует PureVideoHD\e[0m'
@@ -44,7 +49,8 @@ if [[ ! $client = "" ]]; then
         else
         printf '\r                 \e[33;1mTesla hardware video decoder not in use now \e[0m                   '
         fi
-fi 
+    fi
+fi
 read -s -t 1 -n 1 input
 if [[ $input = [Qq] ]]; then break; fi
 done
