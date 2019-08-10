@@ -1,4 +1,4 @@
-m#!/bin/sh
+#!/bin/sh
 
 loc=`locale | grep LANG | sed -e 's/.*LANG="\(.*\)_.*/\1/'`
 
@@ -13,11 +13,7 @@ clear && printf '\e[8;'${lines}';'$col't' && printf '\e[3J' && printf "\033[H"
 
 printf '\n'
 
-#if [ $loc = "ru" ]; then
-#printf '******     Детектируем использование аппаратного декодера NVidia Tesla    ******\n\n'
-#else
-#printf '******      Detecting the usage of NVidia Tesla hardware video decoder    ******\n\n'
-#fi
+TITLE="PureVideoHD"
 
 ionv_ioreg_old="0"
 
@@ -39,20 +35,35 @@ client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | 
     if [[ ! $client = "" ]]; then 
         printf '\r                                                                                \r'
         if [ $loc = "ru" ]; then
+
         printf '\r'"%"$corrl"s"'     \e[36;1mКлиент \e[33;1m''"'"$client"'"''\e[36;1m использует PureVideoHD\e[0m'
+        SUBTITLE="Клиент ""$client"
+        MESSAGE="использует аппаратное ускорение"
+        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\""
+        osascript -e "${COMMAND}"
+
         else
+
         printf '\r'"%"$corrl"s"'      \e[36;1mClient \e[33;1m''"'"$client"'"''\e[36;1m is using PureVideoHD\e[0m '
+        SUBTITLE="The client ""$client"
+        MESSAGE="is using the hardware decoder"
+        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\" sound name \"${AIFF}\""
+        osascript -e "${COMMAND}"
         fi
+
     else
+
         if [ $loc = "ru" ]; then
         printf '\r                \e[33;1mАппаратный декодер NVidia сейчас не используется\e[0m                '
+        osascript -e 'display notification "не используется" with title "PureVideoHD"'
         else
         printf '\r                 \e[33;1mTesla hardware video decoder not in use now \e[0m                   '
+        osascript -e 'display notification "not using" with title "PureVideoHD"'
         fi
     fi
 fi
 read -s -t 1 -n 1 input
-if [[ $input = [Qq] ]]; then break; fi
+if [[ $input = [QqЙй] ]]; then break; fi
 done
 printf "\033[?25h"
  sleep 0.5 && osascript -e 'tell application "Terminal" to close first window' & exit
