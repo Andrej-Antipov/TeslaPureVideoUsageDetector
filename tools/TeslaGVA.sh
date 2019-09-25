@@ -1,16 +1,7 @@
 #!/bin/sh
 
-#MyPID=`echo $$`
-##string=$(ps -xa | grep TeslaPureVideoUsageDetector | awk '{ print $1 }' | tr '\n' ';')
-#IFS=";"; ResLan=($string); unset IFS; pos=${#ResLan[@]}
-#if [[ ! $pos = 0 ]]; then
-#for (( i=0; i<$pos; i++ )); do 
-#if [[ ! ${ResLan[i]} = $MyPID ]]; then kill ${ResLan[i]} &>/dev/null; fi
-#done
-#fi
-
-#loc=`locale | grep LANG | sed -e 's/.*LANG="\(.*\)_.*/\1/'`
-loc=$(cat ~/.auth/auth.plist | grep -A 1 "Locale" | grep string | sed -e 's/.*>\(.*\)<.*/\1/' | tr -d '\n')
+loc=`defaults read -g AppleLocale | cut -d "_" -f1`
+if [[ ! $loc = "ru" ]]; then loc="en"; fi 
 
 TITLE="PureVideoHD"
 

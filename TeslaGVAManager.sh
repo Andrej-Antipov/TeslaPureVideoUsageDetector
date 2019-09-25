@@ -17,7 +17,7 @@ printf '\e[2m************** \e[0m\e[36mПрограмма управления �
 
 cd $(dirname $0)
 
-loc=`locale | grep LANG | sed -e 's/.*LANG="\(.*\)_.*/\1/'`
+loc=`defaults read -g AppleLocale | cut -d "_" -f1`
 if [[ ! $loc = "ru" ]]; then loc="en"; fi 
 
 EXIT_PROGRAM(){
@@ -28,66 +28,7 @@ cat  ~/.bash_history | sed -n '/TeslaGVAManager/!p' >> ~/new_hist.txt; rm ~/.bas
      osascript -e 'tell application "Terminal" to close first window' & exit
 }
 
-GET_AUTH(){
 
-PASSWORD=""
-if [[ -f ~/.auth/auth.plist ]]; then
-      login=`cat ~/.auth/auth.plist | grep -Eo "LoginPassword"  | tr -d '\n'`
-    if [[ $login = "LoginPassword" ]]; then
-PASSWORD=`cat ~/.auth/auth.plist | grep -A 1 "LoginPassword" | grep string | sed -e 's/.*>\(.*\)<.*/\1/' | tr -d '\n'`
-    fi 
-fi 
-
-}
-
-
-
-SET_USER_PASSWORD(){
-
-if [[ ! -d ~/.auth ]]; then mkdir ~/.auth; fi
-
-if [[ ! -f ~/.auth/auth.plist ]]; then
-            echo '<?xml version="1.0" encoding="UTF-8"?>' >> ~/.auth/auth.plist
-            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> ~/.auth/auth.plist
-            echo '<plist version="1.0">' >> ~/.auth/auth.plist
-            echo '<dict>' >> ~/.auth/auth.plist
-            echo '</dict>' >> ~/.auth/auth.plist
-            echo '</plist>' >> ~/.auth/auth.plist
-fi
-
-plutil -replace Locale -string $loc ~/.auth/auth.plist
-
-login=`cat ~/.auth/auth.plist | grep -Eo "LoginPassword"  | tr -d '\n'`
-    if [[ ! $login = "LoginPassword" ]]; then
-                var2=3
-                while [[ ! $var2 = 0 ]] 
-                do
-                CLEAR_PLACE
-                printf "\033[?25h"
-                printf '\n\n  Введите ваш пароль для  постоянного хранения: '
-                read -s mypassword
-                printf "\033[?25l"
-                if [[ $mypassword = "" ]]; then mypassword="?"; fi
-                if echo $mypassword | sudo -Sk printf '' 2>/dev/null; then
-                var2=0
-                plutil -replace LoginPassword -string $mypassword ~/.auth/auth.plist
-
-                printf '\n\n  Пароль \e[32m'$mypassword'\e[0m сохранён.                \n'
-                PASSWORD="${mypassword}"
-                read -n 1 -s -t 2
-                else
-                printf '\n\n  Не верный пароль \e[33m'$mypassword'\e[0m не сохранён.      \n'
-                let "var2--"
-                read -n 1 -s -t 2
-                 
-            fi 
-                 done
-                 CLEAR_PLACE
-                
-        fi
-    
-
-}
 
 CLEAR_PLACE(){
 
@@ -225,22 +166,6 @@ SET_INPUT
 GET_INPUT
 
 if [[ $inputs = 1 ]]; then
-            #GET_AUTH
-            #SET_USER_PASSWORD
-    #if [[ $PASSWORD = "" ]]; then printf '\n\n  \e[1;31mТри неверных ввода пароля ! \e[0m\n'; sleep 2
-#            else
-            if [[ ! -d ~/.auth ]]; then mkdir ~/.auth; fi
-
-            if [[ ! -f ~/.auth/auth.plist ]]; then
-            echo '<?xml version="1.0" encoding="UTF-8"?>' >> ~/.auth/auth.plist
-            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> ~/.auth/auth.plist
-            echo '<plist version="1.0">' >> ~/.auth/auth.plist
-            echo '<dict>' >> ~/.auth/auth.plist
-            echo '</dict>' >> ~/.auth/auth.plist
-            echo '</plist>' >> ~/.auth/auth.plist
-            fi
-
-            plutil -replace Locale -string $loc ~/.auth/auth.plist
             CLEAR_PLACE
             CHECK_TESLAGVA
             if [[ ! $rs_lan = "остановлен" ]] || [[ ! $rs_lan = "работает" ]]; then
@@ -255,7 +180,6 @@ if [[ $inputs = 1 ]]; then
         printf '\n'
         
         fi
-#    fi
 fi
 
 read -n 1 -t 1
