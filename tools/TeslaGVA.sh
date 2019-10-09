@@ -1,7 +1,5 @@
 #!/bin/sh
 
-loc=`defaults read -g AppleLocale | cut -d "_" -f1`
-if [[ ! $loc = "ru" ]]; then loc="en"; fi 
 
 TITLE="PureVideoHD"
 
@@ -19,8 +17,8 @@ client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | 
             if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
     fi
     if [[ ! $client = "" ]]; then 
-        printf '\r                                                                                \r'
-        if [ $loc = "ru" ]; then
+        loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; then loc="en"; fi 
+        if [[ $loc = "ru" ]]; then
 
         SUBTITLE="Клиент ""$client"
         MESSAGE="использует аппаратное ускорение"
@@ -29,26 +27,26 @@ client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | 
 
         else
 
-        SUBTITLE="The client ""$client"
-        MESSAGE="is using the hardware decoder"
-        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\"\""
+        SUBTITLE="$client"
+        MESSAGE="is using decoding hardware acceleration"
+        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\""
         osascript -e "${COMMAND}"
+
         fi
 
     else
 
-        if [ $loc = "ru" ]; then
+        if [[ $loc = "ru" ]]; then
         
         osascript -e 'display notification "не используется" with title "PureVideoHD"'
         else
         
-        osascript -e 'display notification "not using" with title "PureVideoHD"'
+        osascript -e 'display notification "is not in use now" with title "PureVideoHD"'
         fi
     fi
 fi
 sleep 1
 done
- sleep 0.5 && osascript -e 'tell application "Terminal" to close first window' & exit
 exit 1
 
 
