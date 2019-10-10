@@ -1,5 +1,6 @@
 #!/bin/sh
 
+loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; then loc="en"; fi 
 
 TITLE="PureVideoHD"
 
