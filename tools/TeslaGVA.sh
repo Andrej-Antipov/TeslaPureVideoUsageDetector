@@ -2,7 +2,10 @@
 
 loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; then loc="en"; fi 
 
-TITLE="PureVideoHD"
+DISPLAY_NOTIFICATION(){
+~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -subtitle "${SUBTITLE}" -message "${MESSAGE}" 
+}
+
 
 ionv_ioreg_old="0"
 
@@ -23,15 +26,13 @@ client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | 
 
         SUBTITLE="Клиент ""$client"
         MESSAGE="использует аппаратное ускорение"
-        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\""
-        osascript -e "${COMMAND}"
+        DISPLAY_NOTIFICATION
 
         else
 
         SUBTITLE="$client"
         MESSAGE="is using decoding hardware acceleration"
-        COMMAND="display notification \"${MESSAGE}\" with title \"${TITLE}\" subtitle \"${SUBTITLE}\""
-        osascript -e "${COMMAND}"
+        DISPLAY_NOTIFICATION
 
         fi
 
@@ -39,10 +40,10 @@ client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | 
 
         if [[ $loc = "ru" ]]; then
         
-        osascript -e 'display notification "не используется" with title "PureVideoHD"'
+        ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -message "не используется" 
         else
         
-        osascript -e 'display notification "is not in use now" with title "PureVideoHD"'
+        ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -message "is not in use now" 
         fi
     fi
 fi
