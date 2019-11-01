@@ -115,6 +115,7 @@ printf "%"80"s"'\n'"%"80"s"'\n'"%"80"s"'\n'"%"80"s"
 printf "\033[4A"
 printf "\r\033[46C"
 printf "\033[?25h"
+SET_INPUT
 read -rsn1 -t1 inputs 
 printf "\r"
 done
@@ -201,7 +202,7 @@ do
 printf '\e[3J' && printf "\033[0;0H" 
 printf "\033[?25l"
 SHOW_MENU
-SET_INPUT
+#SET_INPUT
 GET_INPUT
 
 if [[ $inputs = 1 ]]; then
@@ -209,12 +210,14 @@ if [[ $inputs = 1 ]]; then
             CHECK_TESLAGVA
  if [[ $loc = "ru" ]]; then
             if [[ ! $rs_lan = "остановлен" ]] || [[ ! $rs_lan = "работает" ]]; then
-            if [[ -f tools/TeslaGVA.plist ]] && [[ -f tools/TeslaGVA.sh ]]; then
-                if [[ ! -f ~/Library/LaunchAgents/TeslaGVA.plist ]]; then cp -a tools/TeslaGVA.plist ~/Library/LaunchAgents; fi
+            if [[ -f tools/TeslaGVA.plist ]] && [[ -f tools/TeslaGVA.sh ]] && [[ -d tools/terminal-notifier.app ]]; then
+                if [[ ! -f ~/Library/LaunchAgents/TeslaGVA.plist ]]; then cp -a tools/TeslaGVA.plist ~/Library/LaunchAgents; chmod 755 ~/Library/LaunchAgents/TeslaGVA.plist; fi
                 plutil -remove ProgramArguments.0 ~/Library/LaunchAgents/TeslaGVA.plist
                 plutil -insert ProgramArguments.0 -string "/Users/$(whoami)/.TeslaGVA.sh" ~/Library/LaunchAgents/TeslaGVA.plist
                 if [[ ! -f ~/.TeslaGVA.sh ]]; then cp -a tools/TeslaGVA.sh ~/.TeslaGVA.sh; chmod u+x ~/.TeslaGVA.sh; fi
                 if [[ ! $rs_lan = "работает" ]]; then launchctl load -w ~/Library/LaunchAgents/TeslaGVA.plist; fi
+                if [[ ! -d ~/Library/Application\ Support/TeslaGVA ]]; then mkdir  ~/Library/Application\ Support/TeslaGVA; fi
+                cp -a tools/terminal-notifier.app ~/Library/Application\ Support/TeslaGVA
            else
                 printf '\n   Не найдены файлы для установки. Поместите их в папку tools с установщиком\n'
                 printf '\n'
@@ -224,12 +227,14 @@ if [[ $inputs = 1 ]]; then
             
  else
             if [[ ! $rs_lan = "stopped" ]] || [[ ! $rs_lan = "started" ]]; then
-            if [[ -f tools/TeslaGVA.plist ]] && [[ -f tools/TeslaGVA.sh ]]; then
+            if [[ -f tools/TeslaGVA.plist ]] && [[ -f tools/TeslaGVA.sh ]] && [[ -d tools/terminal-notifier.app ]]; then
                 if [[ ! -f ~/Library/LaunchAgents/TeslaGVA.plist ]]; then cp -a tools/TeslaGVA.plist ~/Library/LaunchAgents; fi
                 plutil -remove ProgramArguments.0 ~/Library/LaunchAgents/TeslaGVA.plist
                 plutil -insert ProgramArguments.0 -string "/Users/$(whoami)/.TeslaGVA.sh" ~/Library/LaunchAgents/TeslaGVA.plist
                 if [[ ! -f ~/.TeslaGVA.sh ]]; then cp -a tools/TeslaGVA.sh ~/.TeslaGVA.sh; chmod u+x ~/.TeslaGVA.sh; fi
                 if [[ ! $rs_lan = "started" ]]; then launchctl load -w ~/Library/LaunchAgents/TeslaGVA.plist; fi
+                if [[ ! -d ~/Library/Application\ Support/TeslaGVA ]]; then mkdir  ~/Library/Application\ Support/TeslaGVA; fi
+                cp -a tools/terminal-notifier.app ~/Library/Application\ Support/TeslaGVA
            else
                 printf '\n   No installation files found. Put them in the installer tools folder      \n'
                 printf '\n'
@@ -280,6 +285,7 @@ if [[ $inputs = 4 ]]; then
     if [[ $(launchctl list | grep "TeslaGVA.job" | cut -f3 | grep -x "TeslaGVA.job") ]]; then launchctl unload -w ~/Library/LaunchAgents/TeslaGVA.plist; fi
     if [[ -f ~/Library/LaunchAgents/TeslaGVA.plist ]]; then rm ~/Library/LaunchAgents/TeslaGVA.plist; fi
     if [[ -f ~/.TeslaGVA.sh ]]; then rm ~/.TeslaGVA.sh; fi
+    rm -Rf  ~/Library/Application\ Support/TeslaGVA
     read -n 1 -t 1
     CLEAR_PLACE
 fi
