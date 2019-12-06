@@ -54,9 +54,6 @@ CLEAR_PLACE(){
 }
 
 STOP_GVA_DEBUG(){
-diff_list=( $(cat ~/Library/Application\ Support/TeslaGVA/temp02.txt) ); rm ~/Library/Application\ Support/TeslaGVA/temp02.txt
-posdi=${#diff_list[@]}
-for ((i=0;i<$posdi;i++)); do kill ${diff_list[i]}; done 2>/dev/null
 defaults delete com.apple.AppleGVA enableSyslog 2>/dev/null
 }
 
