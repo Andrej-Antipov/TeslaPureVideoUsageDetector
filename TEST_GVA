@@ -1,0 +1,33 @@
+#!/bin/bash
+
+clear && printf '\e[8;4;45t' && printf '\e[3J' && printf "\033[0;0H"
+
+osascript -e "tell application \"Terminal\" to set the font size of window 1 to 14"
+osascript -e "tell application \"Terminal\" to set background color of window 1 to {1028, 12850, 10240}"
+osascript -e "tell application \"Terminal\" to set normal text color of window 1 to {65535, 65535, 65535}"
+
+clear && printf '\e[8;4;45t' && printf '\e[3J' && printf "\033[0;0H"
+printf "\033[?25l"
+
+
+
+gva_debug=$( defaults read com.apple.AppleGVA enableSyslog 2>/dev/null)
+if [[ ! $gva_debug = 1 ]]; then defaults write com.apple.AppleGVA enableSyslog -boolean true; fi
+
+while true
+do 
+ionv=$(ioreg -c IONVGraphicsClientTesla -r | egrep -oE -a2 "NVDVDContextTesla" | grep -m 1 IOUserClientCreator)
+client_pid=$(echo "$ionv" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | xargs)
+if [[ ! $client_pid = "" ]]; then client=$(ps xca  | grep $client_pid | cut -f2 -d ":" | cut -c 6- | xargs)
+        if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
+fi
+if [[ ! $client = "" ]]; then szx=${#client}; let "corr=(45-szx)/2" 
+printf '\r\033[3;'$corr'f'"$client" ; else printf '\r\033[3;2f''                                           '; fi; read -t 5 -n 1 -s; printf '\r\033[1;14f''                 '; printf '\r\033[3;2f''                                           '
+a=$(log stream --style compact --predicate 'eventMessage CONTAINS "GVA"' | grep -m 1 "PhysicalAccelerator create error" | awk '{print $NF}'); if [[ $a -lt 0 ]]; then printf '\r\033[1;14f''\e[1;33mSOFTWARE DECODING\e[0m'; elif [[ $a = 0 ]]; then printf '\r\033[1;14f''\e[1;36mHARDWARE DECODING\e[0m'; fi
+read -t 3 -n 1 -s
+done
+
+       
+if [[ ! $gva_debug = 1 ]]; then defaults delete com.apple.AppleGVA enableSyslog ; fi
+
+osascript -e 'tell application "Terminal" to close first window'
