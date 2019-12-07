@@ -6,14 +6,6 @@ DISPLAY_NOTIFICATION(){
 ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -subtitle "${SUBTITLE}" -message "${MESSAGE}" 
 }
 
-GET_CLIENT_ID(){
-client_pid=$(echo "$ionv" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | xargs)
-    if [[ ! $client_pid = "" ]]; then
-        client=$(ps xca  | grep $client_pid | cut -f2 -d ":" | cut -c 6- | xargs)
-            if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
-    fi
-}
-
 MESSAGE_HARDWARE(){
         if [[ $loc = "ru" ]]; then
         SUBTITLE="Клиент ""$client"
@@ -49,9 +41,10 @@ loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; the
   while true
 do 
 
-
-ionv=$(ioreg -c IONVGraphicsClientTesla -r | egrep -oE -a2 "NVDVDContextTesla" | grep -m 1 IOUserClientCreator); GET_CLIENT_ID
-if [[ $a -lt 0 ]]; then MESSAGE_SOFTWARE; elif [[ $a = 0 ]]; then MESSAGE_HARDWARE; fi ; unset a
-a=$(log stream --style compact --predicate 'eventMessage CONTAINS "GVA"' | egrep -m 1 "PhysicalAccelerator create error" | awk '{print $NF}' )
+unset a
+res=$( log stream --style compact --predicate 'eventMessage CONTAINS "GVA"' | egrep -b5 -m 1 "PhysicalAccelerator create error" )
+a=$( echo "$res" | grep -m 1 "PhysicalAccelerator create error" | awk '{print $NF}' )
+client=$( echo "$res" | grep -m 1 "plugin is" | cut -f1 -d '[' | cut -f3 -d: | cut -c 11- ); if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
+if [[ $a -lt 0 ]]; then MESSAGE_SOFTWARE; elif [[ $a = 0 ]]; then MESSAGE_HARDWARE; fi
 
 done
