@@ -1,54 +1,70 @@
-#!/bin/sh
+#!/bin/bash
 
-loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; then loc="en"; fi 
+# FUNCS
+
+CHECK_GVA(){
+for i in 1 2 3 4 5 6; do
+res=$(ioreg -l | grep "PerformanceStatistics" | tr -d '"' | egrep -o "GPU Video Engine Utilization=[0-9]{1,2}" | awk -F "=" '{print $2}')
+if [[ ! $res = 0 ]]; then break; fi
+sleep 0.5
+done
+}
 
 DISPLAY_NOTIFICATION(){
 ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -subtitle "${SUBTITLE}" -message "${MESSAGE}" 
 }
 
+GET_CLIENT_INFO(){
+while true
+    do
+         res=""   
+         ionv_ioreg=$(ioreg -c IONVGraphicsClientTesla -r | egrep -oE -a2 "NVDVDContextTesla" | grep -m 1 IOUserClientCreator)
+         if [[ ! "$ionv_ioreg" = "$ionv_ioreg_old" ]]; then ionv_ioreg_old="$ionv_ioreg"; if [[ ! $ionv_ioreg = "" ]]; then CHECK_GVA ; break; fi; fi
+         sleep 1
+    done
+}
 
-ionv_ioreg_old="0"
-
-varn=0
-while [[ $varn = 0 ]]; do
-unset client; unset client_pid
-ionv_ioreg=$(ioreg -c IONVGraphicsClientTesla -r | egrep -oE -a2 "NVDVDContextTesla" | grep -m 1 IOUserClientCreator)
-if [[ ! "$ionv_ioreg" = "$ionv_ioreg_old" ]]; then  
-ionv_ioreg_old="$ionv_ioreg"
-client_pid=$(echo "$ionv_ioreg" | cut -f4 -d '"' | cut -f1 -d "," | cut -c 4- | xargs)
+GET_CLIENT_ID(){
+client_pid=$(echo "$ionv_ioreg" | awk '{print $4}' | tr -d ",")
     if [[ ! $client_pid = "" ]]; then
-        client=$(ps xca  | grep $client_pid | cut -f2 -d ":" | cut -c 6- | xargs)
+        client=$(ps xco pid,command  | grep $client_pid | awk '{print $2}')
+         case "${client}" in
+           QuickLookUIService)  client="Quick Look" ;;
+           mpv-bundle) client="MPV" ;;
+         esac
             if [[ ${#client} -gt 41 ]]; then client=$( echo "${client:0:41}"); fi
     fi
-    if [[ ! $client = "" ]]; then 
-        loc=`defaults read -g AppleLocale | cut -d "_" -f1`; if [[ ! $loc = "ru" ]]; then loc="en"; fi 
-        if [[ $loc = "ru" ]]; then
+}
 
+#INIT
+loc=$(defaults read -g AppleLocale | cut -d "_" -f1)
+
+# MAIN
+    
+   while true
+do
+
+GET_CLIENT_INFO
+
+
+if [[ ! "$ionv_ioreg" = "" ]]; then 
+
+    GET_CLIENT_ID
+
+
+    if  [[ ! $res = 0 ]]; then 
+        
+        if [[ $loc = "ru" ]]; then
         SUBTITLE="Клиент ""$client"
         MESSAGE="использует аппаратное ускорение"
         DISPLAY_NOTIFICATION
-
         else
-
         SUBTITLE="$client"
         MESSAGE="is using decoding hardware acceleration"
         DISPLAY_NOTIFICATION
-
         fi
 
-    else
-
-        if [[ $loc = "ru" ]]; then
-        
-        ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -message "не используется" 
-        else
-        
-        ~/Library/Application\ Support/TeslaGVA/terminal-notifier.app/Contents/MacOS/terminal-notifier -title "PureVideoHD" -message "is not in use now" 
-        fi
     fi
 fi
-sleep 1
 done
-exit 1
-
 
